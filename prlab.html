@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔬 AI 编程实验室</title>
+
+    <!-- CodeMirror 编辑器 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js">
+    </script>
+
+    <style>
+        :root {
+            --bg-primary: #1a1b26;
+            --bg-secondary: #1f2133;
+            --bg-tertiary: #282a3a;
+            --bg-input: #1c1e2e;
+            --border: #2e3045;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b8fa3;
+            --text-bright: #e6edf3;
+            --accent: #7c5cfc;
+            --accent-hover: #6a4de6;
+            --accent-glow: rgba(124, 92, 252, 0.3);
+            --success: #3fb950;
+            --warning: #d2991d;
+            --error: #f85149;
+            --info: #58a6ff;
+            --radius: 10px;
+            --radius-sm: 6px;
+            --radius-xs: 4px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', 'Consolas', 'Monaco', monospace;
+            --font-sans: 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============ 顶部导航栏 ============ */
+        .navbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+            flex-shrink: 0;
+            min-height: 50px;
+        }
+        .navbar .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #7c5cfc, #a78bfa, #58a6ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            white-space: nowrap;
+        }
+        .navbar .divider {
+            width: 1px;
+            height: 24px;
+            background: var(--border);
+            border-radius: 1px;
+            flex-shrink: 0;
+        }
+        .navbar .experiment-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .navbar .spacer {
+            flex: 1;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            font-family: var(--font-sans);
+            transition: all var(--transition);
+            white-space: nowrap;
+            outline: none;
+            letter-spacing: 0.2px;
+        }
+        .btn:hover {
+            background: #32344a;
+            border-color: #4a4d65;
+        }
+        .btn:active {
+            transform: scale(0.97);
+            transition: 0.08s;
+        }
+        .btn-accent {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        .btn-accent:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+            box-shadow: 0 0 28px var(--accent-glow);
+        }
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.78rem;
+            border-radius: var(--radius-xs);
+        }
+        .btn-icon {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 1.1rem;
+        }
+        .btn-active {
+            background: #3a3d55 !important;
+            border-color: var(--accent) !important;
+            box-shadow: inset 0 0 0 1px var(--accent);
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            background: #2d3148;
+            color: var(--accent);
+            border: 1px solid #3d3360;
+        }
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-dot 2s infinite;
+        }
+        .status-dot.ready {
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        /* ============ 主体布局 ============ */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ============ 左侧模板面板 ============ */
+        .sidebar {
+            width: 220px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: all var(--transition);
+            overflow: hidden;
+        }
+        .sidebar.collapsed {
+            width: 0;
+            border-right: none;
+        }
+        .sidebar-header {
+            padding: 14px 16px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .sidebar-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-list::-webkit-scrollbar-thumb {
+            background: #3a3d55;
+            border-radius: 2px;
+        }
+        .template-item {
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.82rem;
+            transition: all var(--transition);
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 450;
+        }
+        .template-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-bright);
+            border-color: #3a3d55;
+        }
+        .template-item.active {
+            background: #2a2848;
+            color: #c4b5fd;
+            border-color: #4a3d70;
+            font-weight: 500;
+            box-shadow: inset 0 0 0 1px rgba(124, 92, 252, 0.25);
+        }
+        .template-item .icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        /* ============ 中央编辑区 ============ */
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+            background: var(--bg-primary);
+        }
+        .editor-tabs {
+            display: flex;
+            gap: 2px;
+            padding: 6px 10px 0;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .editor-tab {
+            padding: 8px 18px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+            border-bottom: none;
+            transition: all var(--transition);
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+        .editor-tab:hover {
+            color: var(--text-bright);
+            background: #25273b;
+        }
+        .editor-tab.active {
+            background: var(--bg-primary);
+            color: var(--text-bright);
+            border-color: var(--border);
+            font-weight: 600;
+        }
+        .editor-wrapper {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        .editor-wrapper .CodeMirror {
+            height: 100% !important;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .cm-editor-tag {
+            position: absolute;
+            top: 8px;
+            right: 16px;
+            z-index: 10;
+            pointer-events: none;
+            font-size: 0.7rem;
+            color: #555;
+            font-family: var(--font-mono);
+            letter-spacing: 1px;
+        }
+
+        /* ============ 右侧面板 ============ */
+        .right-panel {
+            width: 380px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: all var(--transition);
+        }
+        .right-panel.collapsed {
+            width: 0;
+            border-left: none;
+            overflow: hidden;
+        }
+        .right-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .right-panel-header .tab-btn {
+            flex: 1;
+            padding: 7px 12px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.78rem;
+            font-weight: 500;
+            border-radius: var(--radius-xs);
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+            transition: all var(--transition);
+            letter-spacing: 0.3px;
+        }
+        .right-panel-header .tab-btn:hover {
+            color: var(--text-bright);
+            background: #25273b;
+        }
+        .right-panel-header .tab-btn.active {
+            background: #2a2848;
+            color: #c4b5fd;
+            border-color: #4a3d70;
+        }
+        .right-content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .right-content .pane {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .right-content .pane.visible {
+            display: flex;
+        }
+
+        /* 预览区 */
+        .preview-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: #fff;
+            border-radius: 0;
+        }
+        .preview-placeholder {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 20px;
+            opacity: 0.7;
+        }
+
+        /* 控制台 */
+        .console-output {
+            flex: 1;
+            background: #0d0e17;
+            color: #c9d1d9;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            padding: 12px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.5;
+            border-radius: 0;
+        }
+        .console-output::-webkit-scrollbar {
+            width: 4px;
+        }
+        .console-output::-webkit-scrollbar-thumb {
+            background: #3a3d55;
+            border-radius: 2px;
+        }
+        .console-line {
+            padding: 2px 0;
+            border-bottom: 1px solid #1a1b26;
+        }
+        .console-line.log {
+            color: #c9d1d9;
+        }
+        .console-line.warn {
+            color: #d2991d;
+        }
+        .console-line.error {
+            color: #f85149;
+        }
+        .console-line.info {
+            color: #58a6ff;
+        }
+        .console-line.success {
+            color: #3fb950;
+        }
+
+        /* AI 聊天区 */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg-primary);
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #3a3d55;
+            border-radius: 2px;
+        }
+        .chat-msg {
+            max-width: 90%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 0.82rem;
+            line-height: 1.55;
+            animation: fadeInUp 0.3s ease;
+            letter-spacing: 0.15px;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .chat-msg.user {
+            align-self: flex-end;
+            background: var(--accent);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+            font-weight: 450;
+        }
+        .chat-msg.ai {
+            align-self: flex-start;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        .chat-msg.ai .ai-label {
+            font-size: 0.65rem;
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+            padding: 10px 12px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-secondary);
+        }
+        .chat-input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--bg-input);
+            color: var(--text-bright);
+            font-size: 0.82rem;
+            font-family: var(--font-sans);
+            outline: none;
+            transition: all var(--transition);
+            letter-spacing: 0.2px;
+        }
+        .chat-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .chat-send-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all var(--transition);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chat-send-btn:hover {
+            background: var(--accent-hover);
+            transform: scale(1.05);
+        }
+        .chat-send-btn:active {
+            transform: scale(0.9);
+        }
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 6px 12px 0;
+        }
+        .quick-chip {
+            padding: 5px 10px;
+            font-size: 0.7rem;
+            border-radius: 14px;
+            cursor: pointer;
+            background: #25273b;
+            color: var(--text-secondary);
+            border: 1px solid #333550;
+            transition: all var(--transition);
+            white-space: nowrap;
+            letter-spacing: 0.2px;
+        }
+        .quick-chip:hover {
+            background: #303350;
+            color: var(--text-bright);
+            border-color: #555;
+        }
+
+        /* ============ 底部状态栏 ============ */
+        .statusbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 5px 14px;
+            background: #161723;
+            border-top: 1px solid var(--border);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            min-height: 28px;
+            letter-spacing: 0.3px;
+        }
+        .statusbar .spacer {
+            flex: 1;
+        }
+
+        /* ============ Toast 提示 ============ */
+        .toast {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #2d3148;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.35s ease;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            letter-spacing: 0.2px;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.success {
+            border-color: var(--success);
+            box-shadow: 0 0 20px rgba(63, 185, 80, 0.25);
+        }
+        .toast.error {
+            border-color: var(--error);
+            box-shadow: 0 0 20px rgba(248, 81, 73, 0.25);
+        }
+
+        /* ============ 响应式 ============ */
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 160px;
+                font-size: 0.75rem;
+            }
+            .right-panel {
+                width: 300px;
+            }
+            .navbar .experiment-title {
+                display: none;
+            }
+            .navbar .divider {
+                display: none;
+            }
+        }
+        @media (max-width: 640px) {
+            .sidebar {
+                display: none;
+            }
+            .right-panel {
+                width: 100%;
+                position: absolute;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 50;
+                box-shadow: var(--shadow);
+            }
+            .right-panel.collapsed {
+                width: 0;
+            }
+            .editor-panel {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== 顶部导航 ==================== -->
+    <nav class="navbar">
+        <span class="logo">🔬 编程实验室</span>
+        <span class="divider"></span>
+        <span class="experiment-title" id="experimentTitle">Hello World</span>
+        <span class="badge" id="modeBadge">JS</span>
+        <span class="spacer"></span>
+        <span class="status-dot ready" title="就绪"></span>
+        <span style="font-size:0.75rem;color:var(--text-secondary);">就绪</span>
+        <button class="btn btn-sm" id="btnToggleSidebar" title="切换模板面板">📁 模板</button>
+        <button class="btn btn-accent" id="btnRun" title="运行代码 (Ctrl+Enter)">▶ 运行</button>
+        <button class="btn btn-sm" id="btnToggleRight" title="切换右侧面板">📐 面板</button>
+        <button class="btn btn-sm" id="btnClearConsole" title="清空控制台">🧹</button>
+    </nav>
+
+    <!-- ==================== 主体 ==================== -->
+    <div class="main-container">
+        <!-- 左侧模板面板 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">📚 实验模板</div>
+            <div class="sidebar-list" id="templateList">
+                <!-- JS动态填充 -->
+            </div>
+        </aside>
+
+        <!-- 中央编辑器 -->
+        <div class="editor-panel" id="editorPanel">
+            <div class="editor-tabs" id="editorTabs">
+                <span class="editor-tab active" data-tab="html">HTML</span>
+                <span class="editor-tab" data-tab="css">CSS</span>
+                <span class="editor-tab" data-tab="js">JavaScript</span>
+            </div>
+            <div class="editor-wrapper" id="editorWrapper">
+                <!-- CodeMirror 将挂载到这里 -->
+            </div>
+        </div>
+
+        <!-- 右侧面板 -->
+        <aside class="right-panel" id="rightPanel">
+            <div class="right-panel-header">
+                <button class="tab-btn active" data-pane="preview">👁 预览</button>
+                <button class="tab-btn" data-pane="console">📟 控制台</button>
+                <button class="tab-btn" data-pane="ai">🤖 AI 助手</button>
+            </div>
+            <div class="right-content">
+                <!-- 预览窗格 -->
+                <div class="pane visible" id="panePreview">
+                    <iframe class="preview-frame" id="previewFrame" sandbox="allow-scripts allow-same-origin" title="预览"></iframe>
+                </div>
+                <!-- 控制台窗格 -->
+                <div class="pane" id="paneConsole">
+                    <div class="console-output" id="consoleOutput">
+                        <div class="console-line info">🟢 控制台就绪。运行代码以查看输出。</div>
+                    </div>
+                </div>
+                <!-- AI 助手窗格 -->
+                <div class="pane" id="paneAI">
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="chat-msg ai">
+                                <div class="ai-label">🤖 AI 编程助手</div>
+                                你好！我是你的AI编程助手。我可以帮你：<br>
+                                • 🔍 <b>解释代码</b> — 分析当前编辑器中的代码<br>
+                                • 🐛 <b>调试帮助</b> — 找出潜在问题<br>
+                                • 💡 <b>优化建议</b> — 改进代码质量<br>
+                                • 📖 <b>概念讲解</b> — 回答编程问题<br><br>
+                                试试点击下方的快捷按钮，或直接向我提问！
+                            </div>
+                        </div>
+                        <div class="quick-actions" id="quickActions">
+                            <span class="quick-chip" data-q="解释一下当前代码">🔍 解释代码</span>
+                            <span class="quick-chip" data-q="帮我检查这段代码有什么bug">🐛 检查Bug</span>
+                            <span class="quick-chip" data-q="如何优化当前代码的性能？">💡 优化建议</span>
+                            <span class="quick-chip" data-q="JavaScript闭包是什么？">📖 闭包概念</span>
+                            <span class="quick-chip" data-q="async/await和Promise的区别">⚡ 异步编程</span>
+                        </div>
+                        <div class="chat-input-row">
+                            <input type="text" class="chat-input" id="chatInput" placeholder="向AI提问... (可引用当前代码)" />
+                            <button class="chat-send-btn" id="chatSendBtn">➤</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- ==================== 底部状态栏 ==================== -->
+    <div class="statusbar">
+        <span id="statusLang">JavaScript</span>
+        <span>|</span>
+        <span id="statusLines">行: 0</span>
+        <span>|</span>
+        <span id="statusChars">字符: 0</span>
+        <span class="spacer"></span>
+        <span id="statusTime" style="opacity:0.6;">⏱ --</span>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        (function() {
+            // ==================== 实验模板定义 ====================
+            const templates = [{
+                id: 'hello-world',
+                title: 'Hello World',
+                icon: '👋',
+                mode: 'js',
+                html: '',
+                css: '',
+                js: `// 🎉 Hello World — 你的第一个实验！
+        console.log("Hello, 编程世界！👋");
+        console.log("欢迎来到AI编程实验室！");
+        console.log("试着修改这行代码，然后点击 ▶ 运行 按钮。");
+
+        // 试试看：
+        const name = "探索者";
+        console.log(\`你好，\${name}！准备好开始编程之旅了吗？\`);
+
+        // 做一些计算
+        const result = [1, 2, 3, 4, 5].map(n => n * n);
+        console.log("1到5的平方：", result);
+        `,
+                description: '基础JavaScript实验，熟悉控制台输出'
+            }, {
+                id: 'dom-playground',
+                title: 'DOM 游乐场',
+                icon: '🎨',
+                mode: 'html',
+                html: `<!DOCTYPE html>
+        <html lang="zh">
+        <head><meta charset="UTF-8"></head>
+        <body>
+          <h1 id="title">🎨 DOM 游乐场</h1>
+          <p>点击按钮来改变页面内容！</p>
+          <button id="magicBtn">✨ 点我变魔术</button>
+          <div id="output" style="margin-top:16px;padding:12px;border:2px dashed #ccc;border-radius:8px;min-height:40px;">
+            等待魔法...
+          </div>
+        </body>
+        </html>`,
+                css: `body {
+          font-family: 'Segoe UI', sans-serif;
+          max-width: 500px;
+          margin: 30px auto;
+          text-align: center;
+          background: #fafafa;
+        }
+        h1 { color: #333; }
+        button {
+          padding: 12px 24px;
+          font-size: 16px;
+          cursor: pointer;
+          background: #7c5cfc;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          transition: all 0.2s;
+        }
+        button:hover { background: #6a4de6; transform: scale(1.05); }
+        button:active { transform: scale(0.95); }`,
+                js: `// DOM 游乐场 — 练习操作网页元素
+        const btn = document.getElementById('magicBtn');
+        const output = document.getElementById('output');
+        const title = document.getElementById('title');
+
+        let clickCount = 0;
+        const emojis = ['🦄', '🌈', '✨', '🎉', '💫', '🌟', '🪄', '🔮'];
+
+        btn.addEventListener('click', () => {
+          clickCount++;
+          const emoji = emojis[clickCount % emojis.length];
+          output.innerHTML = \`魔法施展了 <b>\${clickCount}</b> 次！ \${emoji}\`;
+          output.style.backgroundColor = \`hsl(\${clickCount * 40}, 70%, 92%)\`;
+          title.style.color = \`hsl(\${clickCount * 55}, 80%, 50%)\`;
+          console.log(\`点击次数: \${clickCount}\`);
+        });
+
+        console.log("DOM游乐场已就绪！点击按钮试试吧~");`,
+                description: '练习DOM操作和事件处理'
+            }, {
+                id: 'algorithm-visual',
+                title: '排序可视化',
+                icon: '📊',
+                mode: 'js',
+                html: '',
+                css: '',
+                js: `// 📊 冒泡排序可视化（控制台版）
+        console.log("═══ 冒泡排序可视化 ═══");
+
+        function bubbleSort(arr) {
+          const n = arr.length;
+          let steps = 0;
+          for (let i = 0; i < n - 1; i++) {
+            for (let j = 0; j < n - i - 1; j++) {
+              steps++;
+              if (arr[j] > arr[j + 1]) {
+                [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+                console.log(\`步骤\${steps}: 交换 [\${arr[j]}] ↔ [\${arr[j+1]}] → [\${arr.join(', ')}]\`);
+              }
+            }
+          }
+          return { sorted: arr, steps };
+        }
+
+        const data = [64, 34, 25, 12, 22, 11, 90];
+        console.log("原始数组:", data);
+        const result = bubbleSort([...data]);
+        console.log("✅ 排序完成:", result.sorted);
+        console.log(\`总共 \${result.steps} 步（含比较）\`);
+
+        // 时间复杂度分析
+        console.log("\\n📝 复杂度分析:");
+        console.log("  最坏情况: O(n²)");
+        console.log("  最好情况: O(n) — 已排序时");
+        console.log("  空间复杂度: O(1)");`,
+                description: '经典排序算法可视化'
+            }, {
+                id: 'async-sim',
+                title: '异步编程模拟',
+                icon: '⏳',
+                mode: 'js',
+                html: '',
+                css: '',
+                js: `// ⏳ 异步编程 — Promise & async/await
+        console.log("🚀 开始异步任务模拟...\\n");
+
+        // 模拟API请求
+        function fetchUser(id) {
+          return new Promise((resolve) => {
+            const delay = 500 + Math.random() * 1500;
+            console.log(\`  📡 请求用户 \${id} 的数据...（预计 \${Math.round(delay)}ms）\`);
+            setTimeout(() => {
+              resolve({ id, name: \`用户\${id}\`, score: Math.floor(Math.random() * 100) });
+            }, delay);
+          });
+        }
+
+        // 使用 async/await
+        async function loadAllUsers() {
+          console.time("⏱ 总耗时");
+          const userIds = [1, 2, 3];
+          console.log("并行请求所有用户...\\n");
+
+          const users = await Promise.all(userIds.map(id => fetchUser(id)));
+
+          console.log("\\n✅ 所有数据加载完成:");
+          users.forEach(u => {
+            console.log(\`   👤 \${u.name} — 分数: \${u.score}\`);
+          });
+          console.timeEnd("⏱ 总耗时");
+
+          // 计算平均分
+          const avg = users.reduce((s, u) => s + u.score, 0) / users.length;
+          console.log(\`\\n📊 平均分数: \${avg.toFixed(1)}\`);
+        }
+
+        loadAllUsers().then(() => {
+          console.log("\\n🎉 异步编程实验完成！");
+        });`,
+                description: '理解Promise和async/await'
+            }, {
+                id: 'canvas-art',
+                title: 'Canvas 创意画布',
+                icon: '🖌',
+                mode: 'html',
+                html: `<!DOCTYPE html>
+        <html lang="zh">
+        <head><meta charset="UTF-8"></head>
+        <body>
+          <canvas id="artCanvas" width="400" height="300"></canvas>
+          <p style="text-align:center;color:#666;">每次刷新都会生成不同的图案 🎨</p>
+        </body>
+        </html>`,
+                css: `body {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          margin: 0;
+          background: #1a1b26;
+        }
+        canvas {
+          border-radius: 12px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        p { color: #aaa; margin-top: 12px; font-family: sans-serif; }`,
+                js: `// 🖌 Canvas 创意画布
+        const canvas = document.getElementById('artCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 深色背景
+        ctx.fillStyle = '#1a1b26';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 随机圆形图案
+        for (let i = 0; i < 60; i++) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          const r = Math.random() * 40 + 5;
+          const hue = Math.random() * 360;
+          const alpha = Math.random() * 0.6 + 0.3;
+
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = \`hsla(\${hue}, 70%, 60%, \${alpha})\`;
+          ctx.fill();
+          ctx.strokeStyle = \`hsla(\${hue}, 80%, 80%, 0.5)\`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        // 连线
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i < 30; i++) {
+          ctx.beginPath();
+          ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+          ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+          ctx.stroke();
+        }
+
+        console.log("🎨 画布绘制完成！刷新页面可生成新图案。");`,
+                description: 'Canvas API创意编程'
+            }, {
+                id: 'data-structures',
+                title: '数据结构练习',
+                icon: '🌳',
+                mode: 'js',
+                html: '',
+                css: '',
+                js: `// 🌳 数据结构 — 链表实现
+        console.log("═══ 单向链表实现 ═══\\n");
+
+        class Node {
+          constructor(value) {
+            this.value = value;
+            this.next = null;
+          }
+        }
+
+        class LinkedList {
+          constructor() {
+            this.head = null;
+            this.size = 0;
+          }
+          append(value) {
+            const node = new Node(value);
+            if (!this.head) { this.head = node; }
+            else {
+              let curr = this.head;
+              while (curr.next) curr = curr.next;
+              curr.next = node;
+            }
+            this.size++;
+            console.log(\`  ➕ 添加: \${value} (长度: \${this.size})\`);
+          }
+          toArray() {
+            const arr = [];
+            let curr = this.head;
+            while (curr) { arr.push(curr.value); curr = curr.next; }
+            return arr;
+          }
+          reverse() {
+            let prev = null, curr = this.head;
+            while (curr) {
+              const next = curr.next;
+              curr.next = prev;
+              prev = curr;
+              curr = next;
+            }
+            this.head = prev;
+          }
+        }
+
+        const list = new LinkedList();
+        list.append('🍎');
+        list.append('🍋');
+        list.append('🍇');
+        list.append('🍊');
+
+        console.log("\\n📋 链表内容:", list.toArray().join(' → '));
+        list.reverse();
+        console.log("🔄 反转后:", list.toArray().join(' → '));
+        console.log(\`📏 链表长度: \${list.size}\`);`,
+                description: '实现基础数据结构'
+            }];
+
+            // ==================== 状态管理 ====================
+            let currentTemplate = templates[0];
+            let activeTab = 'js'; // 'html' | 'css' | 'js'
+            let activeRightPane = 'preview'; // 'preview' | 'console' | 'ai'
+            let editorInstance = null;
+            let runStartTime = 0;
+
+            // ==================== DOM引用 ====================
+            const $ = (sel) => document.querySelector(sel);
+            const $$ = (sel) => document.querySelectorAll(sel);
+
+            const domTemplateList = $('#templateList');
+            const domExperimentTitle = $('#experimentTitle');
+            const domModeBadge = $('#modeBadge');
+            const domEditorWrapper = $('#editorWrapper');
+            const domPreviewFrame = $('#previewFrame');
+            const domConsoleOutput = $('#consoleOutput');
+            const domChatMessages = $('#chatMessages');
+            const domChatInput = $('#chatInput');
+            const domStatusLang = $('#statusLang');
+            const domStatusLines = $('#statusLines');
+            const domStatusChars = $('#statusChars');
+            const domStatusTime = $('#statusTime');
+            const domToast = $('#toast');
+            const domEditorTabs = $('#editorTabs');
+            const domRightPanel = $('#rightPanel');
+            const domSidebar = $('#sidebar');
+
+            // ==================== Toast ====================
+            let toastTimer;
+
+            function showToast(msg, type = '') {
+                clearTimeout(toastTimer);
+                domToast.textContent = msg;
+                domToast.className = 'toast ' + type + ' show';
+                toastTimer = setTimeout(() => {
+                    domToast.classList.remove('show');
+                }, 2000);
+            }
+
+            // ==================== 控制台输出 ====================
+            function clearConsole() {
+                domConsoleOutput.innerHTML = '<div class="console-line info">🟢 控制台已清空。</div>';
+            }
+
+            function appendConsole(type, ...args) {
+                const text = args.map(a => {
+                    if (typeof a === 'object') {
+                        try { return JSON.stringify(a, null, 2); } catch (e) { return String(a); }
+                    }
+                    return String(a);
+                }).join(' ');
+                const line = document.createElement('div');
+                line.className = 'console-line ' + type;
+                line.textContent = text;
+                domConsoleOutput.appendChild(line);
+                domConsoleOutput.scrollTop = domConsoleOutput.scrollHeight;
+            }
+
+            // 劫持console方法
+            function createConsoleCapture() {
+                const originalConsole = {};
+                const methods = ['log', 'warn', 'error', 'info'];
+                methods.forEach(m => {
+                    originalConsole[m] = console[m];
+                });
+                return {
+                    capture: () => {
+                        methods.forEach(m => {
+                            console[m] = function(...args) {
+                                appendConsole(m === 'warn' ? 'warn' : m === 'error' ? 'error' : m ===
+                                    'info' ? 'info' : 'log', ...args);
+                                originalConsole[m].apply(console, args);
+                            };
+                        });
+                    },
+                    restore: () => {
+                        methods.forEach(m => {
+                            console[m] = originalConsole[m];
+                        });
+                    }
+                };
+            }
+            const consoleCapture = createConsoleCapture();
+
+            // ==================== 代码编辑器 ====================
+            function initEditor() {
+                if (editorInstance) {
+                    editorInstance.toTextArea();
+                    editorInstance = null;
+                }
+                // 移除旧textarea
+                const oldTA = domEditorWrapper.querySelector('textarea');
+                if (oldTA) oldTA.remove();
+
+                const textarea = document.createElement('textarea');
+                textarea.id = 'codeTextarea';
+                domEditorWrapper.appendChild(textarea);
+
+                const modeMap = {
+                    'html': 'htmlmixed',
+                    'css': 'css',
+                    'js': 'javascript'
+                };
+
+                editorInstance = CodeMirror.fromTextArea(textarea, {
+                    mode: modeMap[activeTab] || 'javascript',
+                    theme: 'dracula',
+                    lineNumbers: true,
+                    autoCloseBrackets: true,
+                    matchBrackets: true,
+                    indentUnit: 2,
+                    tabSize: 2,
+                    indentWithTabs: false,
+                    lineWrapping: true,
+                    extraKeys: {
+                        'Ctrl-Enter': () => runCode(),
+                        'Cmd-Enter': () => runCode(),
+                    },
+                    viewportMargin: Infinity,
+                });
+
+                editorInstance.on('changes', updateStatusBar);
+                updateEditorContent();
+                updateStatusBar();
+                editorInstance.refresh();
+            }
+
+            function updateEditorContent() {
+                if (!editorInstance) return;
+                const content = currentTemplate[activeTab] || '';
+                if (editorInstance.getValue() !== content) {
+                    editorInstance.setValue(content);
+                    editorInstance.clearHistory();
+                    updateStatusBar();
+                }
+            }
+
+            function updateStatusBar() {
+                if (!editorInstance) return;
+                const doc = editorInstance.getDoc();
+                const lines = doc.lineCount();
+                const chars = doc.getValue().length;
+                domStatusLines.textContent = '行: ' + lines;
+                domStatusChars.textContent = '字符: ' + chars;
+                const modeMap = { 'html': 'HTML', 'css': 'CSS', 'js': 'JavaScript' };
+                domStatusLang.textContent = modeMap[activeTab] || activeTab;
+            }
+
+            // ==================== 运行代码 ====================
+            function runCode() {
+                runStartTime = performance.now();
+                const code = editorInstance ? editorInstance.getValue() : '';
+
+                if (currentTemplate.mode === 'html') {
+                    // HTML模式：组合HTML/CSS/JS并预览
+                    runHTMLPreview();
+                    showToast('✅ 预览已更新', 'success');
+                } else {
+                    // JS模式：在控制台中执行
+                    runJavaScript(code);
+                }
+            }
+
+            function runHTMLPreview() {
+                const html = activeTab === 'html' ? (editorInstance ? editorInstance.getValue() : '') : currentTemplate
+                    .html || '';
+                const css = currentTemplate.css || '';
+                const js = currentTemplate.js || '';
+
+                // 获取当前编辑器中的最新内容
+                let finalHTML = html;
+                let finalCSS = css;
+                let finalJS = js;
+
+                if (editorInstance) {
+                    const currentCode = editorInstance.getValue();
+                    if (activeTab === 'html') finalHTML = currentCode;
+                    if (activeTab === 'css') finalCSS = currentCode;
+                    if (activeTab === 'js') finalJS = currentCode;
+                }
+
+                // 构建完整HTML
+                let fullHTML = finalHTML;
+                if (!fullHTML.includes('<!DOCTYPE') && !fullHTML.includes('<html')) {
+                    fullHTML = `<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><style>${finalCSS}</style></head><body>${finalHTML}<script>${finalJS}<\/script></body></html>`;
+                } else {
+                    // 注入CSS和JS
+                    fullHTML = fullHTML.replace('</head>', `<style>${finalCSS}</style></head>`);
+                    fullHTML = fullHTML.replace('</body>', `<script>${finalJS}<\/script></body>`);
+                }
+
+                const blob = new Blob([fullHTML], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                domPreviewFrame.src = url;
+                // 清理旧的URL
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+                const elapsed = ((performance.now() - runStartTime) / 1000).toFixed(3);
+                domStatusTime.textContent = '⏱ ' + elapsed + 's';
+                appendConsole('success', `✅ HTML预览已更新 (${elapsed}s)`);
+            }
+
+            function runJavaScript(code) {
+                clearConsole();
+                appendConsole('info', '🚀 开始执行 JavaScript...');
+                consoleCapture.capture();
+
+                try {
+                    // 使用间接eval在全局作用域执行
+                    const executeFn = new Function('"use strict";\n' + code);
+                    const result = executeFn();
+
+                    if (result !== undefined) {
+                        appendConsole('info', '↳ 返回值: ' + (typeof result === 'object' ? JSON.stringify(result,
+                            null, 2) : String(result)));
+                    }
+                    const elapsed = ((performance.now() - runStartTime) / 1000).toFixed(3);
+                    domStatusTime.textContent = '⏱ ' + elapsed + 's';
+                    appendConsole('success', `✅ 代码执行完成 (${elapsed}s)`);
+                    showToast('✅ 代码执行成功！', 'success');
+                } catch (err) {
+                    appendConsole('error', '❌ 执行错误: ' + err.message);
+                    appendConsole('error', '   Stack: ' + (err.stack || '无堆栈信息'));
+                    const elapsed = ((performance.now() - runStartTime) / 1000).toFixed(3);
+                    domStatusTime.textContent = '⏱ ' + elapsed + 's (错误)';
+                    showToast('❌ 代码有错误，请检查控制台', 'error');
+                } finally {
+                    consoleCapture.restore();
+                }
+
+                // 自动切换到控制台面板
+                switchRightPane('console');
+            }
+
+            // ==================== 模板切换 ====================
+            function selectTemplate(template) {
+                currentTemplate = template;
+                domExperimentTitle.textContent = template.title;
+                domModeBadge.textContent = template.mode === 'html' ? 'HTML/CSS/JS' : 'JavaScript';
+
+                // 设置默认标签
+                if (template.mode === 'html') {
+                    activeTab = 'html';
+                } else {
+                    activeTab = 'js';
+                }
+                updateEditorTabsVisibility();
+                updateEditorContent();
+                updateActiveTabUI();
+                editorInstance.setOption('mode', template.mode === 'html' ? 'htmlmixed' : 'javascript');
+                updateStatusBar();
+
+                // 更新模板列表高亮
+                domTemplateList.querySelectorAll('.template-item').forEach(el => el.classList.remove('active'));
+                const target = domTemplateList.querySelector(`[data-id="${template.id}"]`);
+                if (target) target.classList.add('active');
+
+                // 清空预览
+                if (template.mode === 'html') {
+                    runHTMLPreview();
+                } else {
+                    domPreviewFrame.src = 'about:blank';
+                    clearConsole();
+                    appendConsole('info', '🟢 切换到 "' + template.title + '" — 点击 ▶ 运行 执行代码');
+                }
+            }
+
+            function updateEditorTabsVisibility() {
+                if (currentTemplate.mode === 'html') {
+                    domEditorTabs.style.display = 'flex';
+                } else {
+                    domEditorTabs.style.display = 'none';
+                    activeTab = 'js';
+                }
+            }
+
+            function updateActiveTabUI() {
+                domEditorTabs.querySelectorAll('.editor-tab').forEach(t => {
+                    t.classList.toggle('active', t.dataset.tab === activeTab);
+                });
+            }
+
+            // ==================== 渲染模板列表 ====================
+            function renderTemplateList() {
+                domTemplateList.innerHTML = templates.map(t => `
+            <div class="template-item ${t.id === currentTemplate.id ? 'active' : ''}" data-id="${t.id}">
+              <span class="icon">${t.icon}</span>
+              <span>${t.title}</span>
+            </div>
+          `).join('');
+
+                domTemplateList.querySelectorAll('.template-item').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const tpl = templates.find(t => t.id === el.dataset.id);
+                        if (tpl) selectTemplate(tpl);
+                    });
+                });
+            }
+
+            // ==================== 右侧面板切换 ====================
+            function switchRightPane(pane) {
+                activeRightPane = pane;
+                ['preview', 'console', 'ai'].forEach(p => {
+                    const paneEl = $('#pane' + p.charAt(0).toUpperCase() + p.slice(1));
+                    if (paneEl) paneEl.classList.toggle('visible', p === pane);
+                });
+                // 更新tab按钮
+                const header = $('#rightPanel').querySelector('.right-panel-header');
+                if (header) {
+                    header.querySelectorAll('.tab-btn').forEach(b => {
+                        b.classList.toggle('active', b.dataset.pane === pane);
+                    });
+                }
+                // 如果切换到预览且是HTML模式，刷新预览
+                if (pane === 'preview' && currentTemplate.mode === 'html') {
+                    runHTMLPreview();
+                }
+            }
+
+            // ==================== AI 助手 ====================
+            function getCurrentCode() {
+                return editorInstance ? editorInstance.getValue() : '';
+            }
+
+            function addChatMessage(role, text) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'chat-msg ' + role;
+                if (role === 'ai') {
+                    msgDiv.innerHTML = '<div class="ai-label">🤖 AI 编程助手</div>' + text;
+                } else {
+                    msgDiv.textContent = text;
+                }
+                domChatMessages.appendChild(msgDiv);
+                domChatMessages.scrollTop = domChatMessages.scrollHeight;
+            }
+
+            function generateAIResponse(userQuestion) {
+                const code = getCurrentCode();
+                const codeLower = code.toLowerCase();
+                const questionLower = userQuestion.toLowerCase();
+                const codeLines = code.split('\n').length;
+
+                // 智能响应策略
+                if (questionLower.includes('解释') || questionLower.includes('这段代码') || questionLower.includes(
+                        '分析')) {
+                    return analyzeCode(code, codeLines);
+                }
+                if (questionLower.includes('bug') || questionLower.includes('错误') || questionLower.includes('问题') ||
+                    questionLower.includes('检查')) {
+                    return checkForBugs(code, codeLower);
+                }
+                if (questionLower.includes('优化') || questionLower.includes('改进') || questionLower.includes('性能') ||
+                    questionLower.includes('更好')) {
+                    return suggestOptimizations(code, codeLower);
+                }
+                if (questionLower.includes('闭包')) {
+                    return explainConcept('closure');
+                }
+                if (questionLower.includes('promise') || questionLower.includes('async') || questionLower.includes(
+                        'await')) {
+                    return explainConcept('async');
+                }
+                if (questionLower.includes('数组') || questionLower.includes('array')) {
+                    return explainConcept('array');
+                }
+                if (questionLower.includes('对象') || questionLower.includes('object')) {
+                    return explainConcept('object');
+                }
+                if (questionLower.includes('递归') || questionLower.includes('recursion')) {
+                    return explainConcept('recursion');
+                }
+                if (questionLower.includes('算法') || questionLower.includes('排序')) {
+                    return explainConcept('algorithm');
+                }
+
+                // 通用回复
+                return generateGeneralResponse(userQuestion, code);
+            }
+
+            function analyzeCode(code, lineCount) {
+                let response = `📝 **代码分析**（共 ${lineCount} 行）<br><br>`;
+                if (code.includes('console.log')) {
+                    const logCount = (code.match(/console\.log/g) || []).length;
+                    response += `• 检测到 <b>${logCount}</b> 处 <code>console.log</code> 输出<br>`;
+                }
+                if (code.includes('function')) {
+                    const fnCount = (code.match(/function\s+\w+/g) || []).length;
+                    const arrowCount = (code.match(/=>/g) || []).length;
+                    response += `• 包含 <b>${fnCount}</b> 个命名函数，<b>${arrowCount}</b> 处箭头函数<br>`;
+                }
+                if (code.includes('class ')) {
+                    response += `• 使用了 <b>class</b> 语法定义类<br>`;
+                }
+                if (code.includes('for') || code.includes('while')) {
+                    response += `• 包含循环结构（for/while）<br>`;
+                }
+                if (code.includes('if') || code.includes('else')) {
+                    response += `• 包含条件判断<br>`;
+                }
+                if (code.includes('const ') || code.includes('let ') || code.includes('var ')) {
+                    const constCount = (code.match(/\bconst\b/g) || []).length;
+                    const letCount = (code.match(/\blet\b/g) || []).length;
+                    response += `• 变量声明：const×${constCount}, let×${letCount}<br>`;
+                }
+                response +=
+                    `<br>💡 <b>总体评估：</b>代码结构清晰，建议添加更多注释以便理解。你可以问我更具体的问题，比如某一行代码的作用。`;
+                return response;
+            }
+
+            function checkForBugs(code, codeLower) {
+                let issues = [];
+                if (code.includes('==') && !code.includes('===') && !code.includes('!==')) {
+                    issues.push('⚠️ 使用了 <code>==</code> 而非 <code>===</code>，可能导致类型强制转换的意外结果。');
+                }
+                if (codeLower.includes('var ') && (codeLower.includes('let ') || codeLower.includes('const '))) {
+                    issues.push('💡 混合使用了 <code>var</code> 和 <code>let/const</code>，建议统一使用 <code>let</code> 和 <code>const</code>。');
+                }
+                if (code.includes('console.log') && code.includes('// console.log')) {
+                    issues.push('📝 有被注释的调试语句，清理它们可以让代码更整洁。');
+                }
+                if (codeLower.includes('for(') && codeLower.includes('.length') && !codeLower.includes('cache')) {
+                    issues.push('💡 循环中直接使用 <code>.length</code>，可以考虑缓存长度以提升微小的性能。');
+                }
+                if (code.includes('setTimeout') && code.includes('0')) {
+                    issues.push('ℹ️ 使用 <code>setTimeout(fn, 0)</code> 会延迟到事件循环下一轮执行。');
+                }
+                if (issues.length === 0) {
+                    issues.push('✅ 没有发现明显的bug。代码看起来不错！如果运行时出现错误，请把错误信息发给我。');
+                }
+                return '🐛 **代码检查结果：**<br><br>' + issues.join('<br>');
+            }
+
+            function suggestOptimizations(code, codeLower) {
+                let suggestions = [];
+                if (codeLower.includes('for') && codeLower.includes('.length') && codeLower.includes('i++')) {
+                    suggestions.push(
+                        '• 对于数组遍历，可以考虑使用 <code>forEach</code>、<code>map</code> 或 <code>for...of</code>，代码更简洁易读。');
+                }
+                if (codeLower.includes('+') && codeLower.includes('string') || code.includes("'") && code.includes('+')) {
+                    suggestions.push('• 字符串拼接可以使用<b>模板字面量</b>（反引号 <code>`</code>），更直观。');
+                }
+                if (!codeLower.includes('try') && (codeLower.includes('json') || codeLower.includes('parse'))) {
+                    suggestions.push('• 处理外部数据时建议使用 <code>try...catch</code> 包裹，防止解析失败。');
+                }
+                if (codeLower.includes('var ')) {
+                    suggestions.push('• 将 <code>var</code> 替换为 <code>let</code> 或 <code>const</code>，获得块级作用域。');
+                }
+                if (suggestions.length === 0) {
+                    suggestions.push('• 当前代码已经不错了！可以考虑添加JSDoc注释来提高可维护性。');
+                    suggestions.push('• 如果有重复的逻辑，可以提取为独立函数。');
+                }
+                return '💡 **优化建议：**<br><br>' + suggestions.join('<br>');
+            }
+
+            function explainConcept(concept) {
+                const knowledge = {
+                    'closure': `📖 **闭包（Closure）**<br><br>
+            闭包是指一个函数能够记住并访问其词法作用域，即使该函数在其词法作用域之外执行。<br><br>
+            <b>示例：</b>
+            <pre style="background:#1c1e2e;padding:8px;border-radius:6px;overflow-x:auto;">function createCounter() {
+              let count = 0;
+              return function() {
+                count++;
+                return count;
+              };
+            }
+            const counter = createCounter();
+            console.log(counter()); // 1
+            console.log(counter()); // 2</pre>
+            <b>关键点：</b>内部函数持有对外部变量 <code>count</code> 的引用，形成闭包。`,
+
+                    'async': `📖 **异步编程 — Promise & async/await**<br><br>
+            <b>Promise</b> 代表一个异步操作的最终结果。有三种状态：pending、fulfilled、rejected。<br><br>
+            <b>async/await</b> 是Promise的语法糖，让异步代码看起来像同步代码：<br>
+            <pre style="background:#1c1e2e;padding:8px;border-radius:6px;">async function fetchData() {
+              const response = await fetch(url);
+              const data = await response.json();
+              return data;
+            }</pre>
+            <b>关键：</b><code>await</code> 只能在 <code>async</code> 函数内使用。`,
+
+                    'array': `📖 **JavaScript数组方法**<br><br>
+            常用方法：<br>
+            • <code>map()</code> — 转换每个元素，返回新数组<br>
+            • <code>filter()</code> — 筛选符合条件的元素<br>
+            • <code>reduce()</code> — 累积计算<br>
+            • <code>forEach()</code> — 遍历（无返回值）<br>
+            • <code>find()</code> / <code>some()</code> / <code>every()</code> — 条件查找<br>
+            • <code>sort()</code> — 排序<br>
+            • <code>slice()</code> / <code>splice()</code> — 截取/删除`,
+
+                    'object': `📖 **JavaScript对象**<br><br>
+            对象是键值对的集合。现代JS支持：<br>
+            • <b>解构：</b><code>const {name, age} = user;</code><br>
+            • <b>展开：</b><code>const merged = {...obj1, ...obj2};</code><br>
+            • <b>可选链：</b><code>user?.address?.city</code><br>
+            • <b>Object.keys/values/entries</b> 遍历对象`,
+
+                    'recursion': `📖 **递归**<br><br>
+            函数调用自身来解决问题。经典例子——阶乘：<br>
+            <pre style="background:#1c1e2e;padding:8px;border-radius:6px;">function factorial(n) {
+              if (n <= 1) return 1;  // 基准条件
+              return n * factorial(n - 1);  // 递归调用
+            }</pre>
+            <b>注意：</b>必须有基准条件防止无限递归，深度过大可能导致栈溢出。`,
+
+                    'algorithm': `📖 **常见算法复杂度**<br><br>
+            • O(1) — 常数时间（数组索引访问）<br>
+            • O(log n) — 对数时间（二分查找）<br>
+            • O(n) — 线性时间（遍历数组）<br>
+            • O(n log n) — 线性对数（归并排序、快排）<br>
+            • O(n²) — 平方时间（冒泡排序、嵌套循环）<br><br>
+            <b>建议：</b>对于大数据集，尽量避免O(n²)算法。`
+                };
+                return knowledge[concept] || '📖 关于这个主题，我正在学习更多知识。你可以尝试换个方式提问！';
+            }
+
+            function generateGeneralResponse(question, code) {
+                const responses = [
+                    `🤔 这是个好问题！基于当前代码（${code.split('\n').length}行），我建议你尝试运行一下看看效果。如果遇到具体错误，把错误信息发给我，我可以帮你定位问题。`,
+                    `💭 让我想想... 你的代码目前使用了${code.includes('function') ? '函数' : '基础语法'}。有什么具体方面需要我深入讲解的吗？比如变量作用域、异步处理或算法优化？`,
+                    `📚 关于这个问题，建议你查看一下MDN文档。同时，当前代码中的${code.includes('console') ? '调试输出' : '逻辑'}可以帮助你理解执行流程。需要我详细解释某一部分吗？`,
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+
+            function handleChatSend() {
+                const question = domChatInput.value.trim();
+                if (!question) return;
+                addChatMessage('user', question);
+                domChatInput.value = '';
+
+                // 模拟思考延迟
+                setTimeout(() => {
+                    const response = generateAIResponse(question);
+                    addChatMessage('ai', response);
+                }, 600 + Math.random() * 800);
+            }
+
+            // ==================== 事件绑定 ====================
+            $('#btnRun').addEventListener('click', runCode);
+            $('#btnClearConsole').addEventListener('click', clearConsole);
+            $('#btnToggleRight').addEventListener('click', () => {
+                domRightPanel.classList.toggle('collapsed');
+            });
+            $('#btnToggleSidebar').addEventListener('click', () => {
+                domSidebar.classList.toggle('collapsed');
+            });
+
+            // 编辑器标签切换
+            domEditorTabs.addEventListener('click', (e) => {
+                if (e.target.classList.contains('editor-tab')) {
+                    activeTab = e.target.dataset.tab;
+                    updateActiveTabUI();
+                    updateEditorContent();
+                    const modeMap = { 'html': 'htmlmixed', 'css': 'css', 'js': 'javascript' };
+                    editorInstance.setOption('mode', modeMap[activeTab] || 'javascript');
+                    updateStatusBar();
+                    if (currentTemplate.mode === 'html' && activeRightPane === 'preview') {
+                        runHTMLPreview();
+                    }
+                }
+            });
+
+            // 右侧面板切换
+            $('#rightPanel').querySelector('.right-panel-header').addEventListener('click', (e) => {
+                if (e.target.classList.contains('tab-btn')) {
+                    switchRightPane(e.target.dataset.pane);
+                }
+            });
+
+            // AI聊天
+            $('#chatSendBtn').addEventListener('click', handleChatSend);
+            domChatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleChatSend();
+                }
+            });
+
+            // 快捷提问
+            $('#quickActions').addEventListener('click', (e) => {
+                if (e.target.classList.contains('quick-chip')) {
+                    const q = e.target.dataset.q;
+                    domChatInput.value = q + '（参考当前编辑器中的代码）';
+                    switchRightPane('ai');
+                    domChatInput.focus();
+                }
+            });
+
+            // 键盘快捷键
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    runCode();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    showToast('💾 代码已暂存（浏览器本地）', 'success');
+                    localStorage.setItem('lab-last-code', getCurrentCode());
+                    localStorage.setItem('lab-last-template', currentTemplate.id);
+                }
+            });
+
+            // ==================== 初始化 ====================
+            function init() {
+                renderTemplateList();
+                updateEditorTabsVisibility();
+                initEditor();
+                updateActiveTabUI();
+                updateStatusBar();
+
+                // 恢复上次的代码（如果有）
+                const savedTemplateId = localStorage.getItem('lab-last-template');
+                if (savedTemplateId) {
+                    const savedTpl = templates.find(t => t.id === savedTemplateId);
+                    if (savedTpl) {
+                        selectTemplate(savedTpl);
+                        const savedCode = localStorage.getItem('lab-last-code');
+                        if (savedCode && editorInstance) {
+                            editorInstance.setValue(savedCode);
+                            updateStatusBar();
+                        }
+                    }
+                }
+
+                // 初始预览
+                if (currentTemplate.mode === 'html') {
+                    runHTMLPreview();
+                }
+
+                // 初始状态
+                switchRightPane('preview');
+                updateStatusBar();
+
+                console.log('🔬 AI编程实验室已就绪！');
+                console.log('  📁 左侧选择实验模板');
+                console.log('  ✏️ 中央编辑代码');
+                console.log('  ▶ 点击运行按钮或按 Ctrl+Enter');
+                console.log('  🤖 右侧AI助手可帮你学习编程');
+                console.log('  💡 试试点击AI面板的快捷按钮！');
+            }
+
+            // 窗口大小变化时刷新编辑器
+            window.addEventListener('resize', () => {
+                if (editorInstance) editorInstance.refresh();
+            });
+
+            // 启动
+            init();
+
+            // 暴露API到全局
+            window.LabAPI = {
+                runCode,
+                clearConsole,
+                selectTemplate: (id) => {
+                    const tpl = templates.find(t => t.id === id);
+                    if (tpl) selectTemplate(tpl);
+                },
+                getCurrentCode,
+                getTemplates: () => templates,
+                switchRightPane,
+                addChatMessage,
+            };
+
+            console.log('💡 可通过 window.LabAPI 访问实验室API');
+        })();
+    </script>
+</body>
+</html>

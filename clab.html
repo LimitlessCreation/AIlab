@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔬 C/C++ 编程实验室 (AI 辅助)</title>
+
+    <!-- CodeMirror 编辑器 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #1a1b26;
+            --bg-secondary: #1f2133;
+            --bg-tertiary: #282a3a;
+            --bg-input: #1c1e2e;
+            --border: #2e3045;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b8fa3;
+            --text-bright: #e6edf3;
+            --accent: #7c5cfc;
+            --accent-hover: #6a4de6;
+            --accent-glow: rgba(124, 92, 252, 0.3);
+            --success: #3fb950;
+            --warning: #d2991d;
+            --error: #f85149;
+            --radius: 10px;
+            --radius-sm: 6px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --transition: 0.2s ease;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .navbar .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #7c5cfc, #a78bfa, #58a6ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            white-space: nowrap;
+        }
+        .navbar select {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-bright);
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover { background: #32344a; }
+        .btn-accent {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        .btn-accent:hover { background: var(--accent-hover); }
+        .spacer { flex: 1; }
+
+        /* 主布局 */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* 左侧模板面板 */
+        .sidebar {
+            width: 200px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 14px 16px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .template-item {
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            margin-bottom: 4px;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+            border: 1px solid transparent;
+        }
+        .template-item:hover, .template-item.active {
+            background: var(--bg-tertiary);
+            color: var(--text-bright);
+            border-color: var(--accent);
+        }
+
+        /* 编辑器区域 */
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .editor-wrapper {
+            flex: 1;
+            overflow: hidden;
+        }
+        .editor-wrapper .CodeMirror {
+            height: 100% !important;
+            font-family: var(--font-mono);
+            font-size: 14px;
+        }
+
+        /* 右侧面板 */
+        .right-panel {
+            width: 360px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+        .right-panel-header {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+        .right-panel-header button {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition);
+        }
+        .right-panel-header button.active {
+            color: var(--accent);
+            box-shadow: inset 0 -2px 0 var(--accent);
+        }
+        .right-content { flex: 1; overflow: hidden; }
+        .pane { display: none; flex-direction: column; height: 100%; }
+        .pane.visible { display: flex; }
+
+        .console-output {
+            flex: 1;
+            background: #0d0e17;
+            color: #c9d1d9;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            padding: 12px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .chat-container { display: flex; flex-direction: column; height: 100%; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-msg {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 0.82rem;
+            line-height: 1.5;
+        }
+        .chat-msg.user { align-self: flex-end; background: var(--accent); color: #fff; }
+        .chat-msg.ai { align-self: flex-start; background: var(--bg-tertiary); border: 1px solid var(--border); }
+        .chat-input-row { display: flex; padding: 8px; border-top: 1px solid var(--border); gap: 8px; }
+        .chat-input {
+            flex: 1; padding: 8px 12px; border-radius: 20px;
+            border: 1px solid var(--border); background: var(--bg-input);
+            color: var(--text-bright); outline: none;
+        }
+        .chat-send-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--accent); border: none; color: white;
+            cursor: pointer; font-size: 1rem;
+        }
+        .quick-actions { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px; }
+        .quick-chip {
+            padding: 4px 10px; border-radius: 14px; font-size: 0.7rem;
+            background: #25273b; border: 1px solid #333; cursor: pointer;
+            color: var(--text-secondary);
+        }
+        .quick-chip:hover { color: var(--text-bright); background: #303350; }
+
+        .statusbar {
+            padding: 4px 14px; background: #161723; border-top: 1px solid var(--border);
+            font-size: 0.72rem; color: var(--text-secondary); display: flex; gap: 16px;
+        }
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: #2d3148; color: #fff; padding: 8px 20px; border-radius: 20px;
+            font-size: 0.8rem; opacity: 0; transition: all 0.3s; pointer-events: none;
+            z-index: 999; border: 1px solid var(--border);
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <span class="logo">🔬 C/C++ 实验室</span>
+        <select id="langSelect">
+            <option value="c">C (gcc 9.4.0)</option>
+            <option value="cpp">C++ (g++ 9.4.0)</option>
+        </select>
+        <span class="spacer"></span>
+        <button class="btn btn-accent" id="btnRun">▶ 编译运行 (Ctrl+Enter)</button>
+        <button class="btn" id="btnClearConsole">🧹 清空</button>
+    </nav>
+
+    <!-- 主体 -->
+    <div class="main-container">
+        <!-- 左侧模板 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">📁 经典示例</div>
+            <div class="sidebar-list" id="templateList"></div>
+        </aside>
+
+        <!-- 编辑器 -->
+        <div class="editor-panel">
+            <div class="editor-wrapper" id="editorWrapper"></div>
+        </div>
+
+        <!-- 右侧面板 -->
+        <div class="right-panel">
+            <div class="right-panel-header">
+                <button class="active" data-pane="console">📟 控制台</button>
+                <button data-pane="ai">🤖 AI 助手</button>
+            </div>
+            <div class="right-content">
+                <div class="pane visible" id="paneConsole">
+                    <div class="console-output" id="consoleOutput">🟢 准备就绪，点击运行编译C/C++代码。</div>
+                </div>
+                <div class="pane" id="paneAI">
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="chat-msg ai">👋 你好！我是AI编程助手，可以帮你解释C/C++代码、检查错误、讲解指针/内存等概念。</div>
+                        </div>
+                        <div class="quick-actions" id="quickActions">
+                            <span class="quick-chip" data-q="解释当前代码">🔍 解释代码</span>
+                            <span class="quick-chip" data-q="检查潜在bug">🐛 检查Bug</span>
+                            <span class="quick-chip" data-q="指针和引用的区别">📌 指针 vs 引用</span>
+                            <span class="quick-chip" data-q="动态内存分配">💾 new / malloc</span>
+                        </div>
+                        <div class="chat-input-row">
+                            <input class="chat-input" id="chatInput" placeholder="询问AI..." />
+                            <button class="chat-send-btn" id="chatSendBtn">➤</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="statusbar">
+        <span id="statusLang">C</span>
+        <span id="statusLines">行: 0</span>
+        <span>|</span>
+        <span id="statusCompile">等待编译</span>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- ==================== 脚本 ==================== -->
+    <script>
+        (function() {
+            // ⚠️ 请替换为您的 Judge0 API Key（免费注册：https://judge0.com）
+            const JUDGE0_API_KEY = 'YOUR_API_KEY_HERE';  // ← 在这里填入你的Key
+            const JUDGE0_BASE_URL = 'https://judge0-ce.p.rapidapi.com/submissions';
+
+            // 模板
+            const templates = [
+                { id: 'hello', title: 'Hello World', lang: 'c',
+                  code: '#include <stdio.h>\n\nint main() {\n    printf("Hello, C!\\n");\n    return 0;\n}' },
+                { id: 'loop', title: '循环求和', lang: 'c',
+                  code: '#include <stdio.h>\n\nint main() {\n    int sum = 0;\n    for(int i=1; i<=10; i++)\n        sum += i;\n    printf("1+2+...+10 = %d\\n", sum);\n    return 0;\n}' },
+                { id: 'cpp-hello', title: 'C++ Hello', lang: 'cpp',
+                  code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, C++!" << endl;\n    return 0;\n}' },
+                { id: 'vector', title: 'vector 示例', lang: 'cpp',
+                  code: '#include <iostream>\n#include <vector>\nusing namespace std;\n\nint main() {\n    vector<int> v = {1,2,3,4,5};\n    for(auto x : v) cout << x << " ";\n    cout << endl;\n    return 0;\n}' }
+            ];
+
+            let currentLang = 'c';
+            let editor = null;
+
+            // DOM 元素
+            const $ = (s) => document.querySelector(s);
+            const domConsole = $('#consoleOutput');
+            const domStatusLang = $('#statusLang');
+            const domStatusCompile = $('#statusCompile');
+            const domStatusLines = $('#statusLines');
+            const domLangSelect = $('#langSelect');
+            const domTemplateList = $('#templateList');
+            const domChatMessages = $('#chatMessages');
+            const domChatInput = $('#chatInput');
+
+            // Toast
+            function showToast(msg, success=true) {
+                const toast = $('#toast');
+                toast.textContent = msg;
+                toast.className = 'toast show ' + (success ? 'success' : 'error');
+                setTimeout(() => toast.classList.remove('show'), 2500);
+            }
+
+            // 初始化编辑器
+            function initEditor() {
+                const textarea = document.createElement('textarea');
+                $('#editorWrapper').appendChild(textarea);
+                editor = CodeMirror.fromTextArea(textarea, {
+                    mode: 'text/x-csrc',
+                    theme: 'dracula',
+                    lineNumbers: true,
+                    autoCloseBrackets: true,
+                    matchBrackets: true,
+                    indentUnit: 4,
+                    tabSize: 4,
+                    lineWrapping: true,
+                });
+                editor.on('changes', updateStatus);
+            }
+
+            function updateStatus() {
+                if (!editor) return;
+                const lines = editor.lineCount();
+                $('#statusLines').textContent = '行: ' + lines;
+            }
+
+            // 切换语言
+            function setLanguage(lang) {
+                currentLang = lang;
+                const mode = lang === 'c' ? 'text/x-csrc' : 'text/x-c++src';
+                editor.setOption('mode', mode);
+                $('#statusLang').textContent = lang === 'c' ? 'C' : 'C++';
+                // 切换第一个对应语言的模板
+                const firstTpl = templates.find(t => t.lang === lang);
+                if (firstTpl) loadTemplate(firstTpl);
+            }
+
+            // 加载模板
+            function loadTemplate(tpl) {
+                editor.setValue(tpl.code);
+                editor.clearHistory();
+                if (tpl.lang !== currentLang) {
+                    $('#langSelect').value = tpl.lang;
+                    setLanguage(tpl.lang);
+                }
+                // 高亮模板列表
+                document.querySelectorAll('.template-item').forEach(el => el.classList.remove('active'));
+                const target = document.querySelector(`.template-item[data-id="${tpl.id}"]`);
+                if (target) target.classList.add('active');
+            }
+
+            function renderTemplates() {
+                domTemplateList.innerHTML = templates.map(t => `
+                    <div class="template-item" data-id="${t.id}" data-lang="${t.lang}">
+                        <span>${t.title}</span> <span style="font-size:0.6rem;opacity:0.7;">${t.lang.toUpperCase()}</span>
+                    </div>
+                `).join('');
+                domTemplateList.addEventListener('click', (e) => {
+                    const item = e.target.closest('.template-item');
+                    if (!item) return;
+                    const tpl = templates.find(t => t.id === item.dataset.id);
+                    if (tpl) loadTemplate(tpl);
+                });
+            }
+
+            // 调用 Judge0 API 编译运行
+            async function runCode() {
+                const sourceCode = editor.getValue();
+                if (!sourceCode.trim()) {
+                    showToast('❌ 代码为空', false);
+                    return;
+                }
+                if (JUDGE0_API_KEY === 'YOUR_API_KEY_HERE') {
+                    domConsole.innerText = '⚠️ 请先替换代码中的 JUDGE0_API_KEY 为您自己的 Judge0 API Key。\n免费注册：https://judge0.com';
+                    return;
+                }
+
+                domConsole.innerText = '⏳ 正在编译并运行...\n';
+                $('#statusCompile').textContent = '编译中...';
+                showToast('🚀 提交中...');
+
+                const languageId = currentLang === 'c' ? 50 : 54; // C:50, C++:54 (Judge0 IDs)
+                const payload = {
+                    source_code: sourceCode,
+                    language_id: languageId,
+                    stdin: '',
+                };
+
+                try {
+                    // 提交代码
+                    const submitRes = await fetch(`${JUDGE0_BASE_URL}?base64_encoded=false&wait=false`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-RapidAPI-Key': JUDGE0_API_KEY,
+                            'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!submitRes.ok) throw new Error('提交失败: ' + submitRes.status);
+                    const { token } = await submitRes.json();
+
+                    // 轮询结果
+                    let result = null;
+                    for (let i = 0; i < 10; i++) {
+                        await new Promise(r => setTimeout(r, 1000));
+                        const statusRes = await fetch(`${JUDGE0_BASE_URL}/${token}?base64_encoded=false`, {
+                            headers: {
+                                'X-RapidAPI-Key': JUDGE0_API_KEY,
+                                'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com'
+                            }
+                        });
+                        result = await statusRes.json();
+                        if (result.status && result.status.id >= 3) break; // 3=完成
+                    }
+
+                    if (!result) throw new Error('未获取到结果');
+
+                    // 显示输出
+                    let output = '';
+                    if (result.stdout) output += result.stdout;
+                    if (result.stderr) output += '\n【标准错误】\n' + result.stderr;
+                    if (result.compile_output) output += '\n【编译输出】\n' + result.compile_output;
+                    if (result.message) output += '\n【信息】' + result.message;
+                    if (result.status.description) {
+                        const desc = result.status.description;
+                        if (desc === 'Accepted') output += '\n✅ 程序运行成功';
+                        else output += '\n⚠️ 状态: ' + desc;
+                    }
+                    domConsole.innerText = output || '(无输出)';
+                    $('#statusCompile').textContent = result.status.description || '完成';
+                    showToast('✅ 运行完成');
+                } catch (err) {
+                    domConsole.innerText = '❌ 错误: ' + err.message;
+                    $('#statusCompile').textContent = '错误';
+                    showToast('运行失败', false);
+                }
+            }
+
+            // AI 助手（模拟，基于规则）
+            function addChatMessage(role, text) {
+                const msg = document.createElement('div');
+                msg.className = 'chat-msg ' + role;
+                msg.innerHTML = role === 'ai' ? text : text.replace(/</g, '&lt;');
+                domChatMessages.appendChild(msg);
+                domChatMessages.scrollTop = domChatMessages.scrollHeight;
+            }
+
+            function generateAIResponse(question) {
+                const code = editor.getValue().toLowerCase();
+                const q = question.toLowerCase();
+                if (q.includes('指针') || q.includes('pointer')) return '📌 <b>指针</b>存储内存地址，使用 <code>*</code> 解引用，<code>&</code> 取地址。与引用不同，指针可为空且可重新赋值。';
+                if (q.includes('引用') || q.includes('reference')) return '🔗 <b>引用</b>是变量的别名，必须初始化且不可更改绑定，语法更简洁。';
+                if (q.includes('new') || q.includes('malloc')) return '💾 C++ 使用 <code>new</code>/<code>delete</code>，C 使用 <code>malloc</code>/<code>free</code>。记得配对释放！';
+                if (q.includes('解释') || q.includes('分析')) return '📝 当前代码主要包含 ' + (code.includes('main') ? 'main函数' : '自定义逻辑') + '，使用了标准输入输出。需要我详细讲解哪一部分？';
+                if (q.includes('bug') || q.includes('错误')) return '🐛 常见C/C++问题：数组越界、忘记释放内存、使用未初始化变量。检查你的代码中是否有这些情况。';
+                return '💡 你可以问我：指针用法、内存管理、STL容器、或者代码具体行的问题。';
+            }
+
+            function sendChat() {
+                const text = domChatInput.value.trim();
+                if (!text) return;
+                addChatMessage('user', text);
+                domChatInput.value = '';
+                setTimeout(() => {
+                    const reply = generateAIResponse(text);
+                    addChatMessage('ai', reply);
+                }, 500);
+            }
+
+            // 事件绑定
+            $('#btnRun').addEventListener('click', runCode);
+            $('#btnClearConsole').addEventListener('click', () => { domConsole.innerText = ''; });
+            $('#langSelect').addEventListener('change', (e) => setLanguage(e.target.value));
+            $('#chatSendBtn').addEventListener('click', sendChat);
+            domChatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChat(); });
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runCode(); }
+            });
+
+            // 快捷提问
+            $('#quickActions').addEventListener('click', (e) => {
+                if (e.target.classList.contains('quick-chip')) {
+                    domChatInput.value = e.target.dataset.q;
+                    sendChat();
+                }
+            });
+
+            // 右侧面板切换
+            document.querySelectorAll('.right-panel-header button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.right-panel-header button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const pane = btn.dataset.pane;
+                    document.getElementById('paneConsole').classList.toggle('visible', pane === 'console');
+                    document.getElementById('paneAI').classList.toggle('visible', pane === 'ai');
+                });
+            });
+
+            // 初始化
+            initEditor();
+            renderTemplates();
+            setLanguage('c');
+            loadTemplate(templates[0]);
+            updateStatus();
+        })();
+    </script>
+</body>
+</html>
