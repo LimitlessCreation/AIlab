@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第一未知量 | ThinkHuman</title>
+    <style>
+        :root {
+            --bg-color: #0d0d0d;
+            --text-main: #e0e0e0;
+            --text-muted: #888888;
+            --accent: #ffffff;
+            --border: #2a2a2a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Courier New', Courier, monospace, "Microsoft YaHei";
+            line-height: 1.6;
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* 顶部终端风格 */
+        header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        .terminal-line {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .terminal-line::before {
+            content: "> ";
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: normal;
+            color: var(--accent);
+            margin: 10px 0 5px;
+            letter-spacing: 2px;
+        }
+
+        h1 span {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-left: 10px;
+        }
+
+        /* 代码块区域 */
+        .code-block {
+            background-color: #151515;
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 40px;
+            overflow-x: auto;
+        }
+
+        .code-block .keyword { color: #c678dd; }
+        .code-block .func { color: #61afef; }
+        .code-block .string { color: #98c379; }
+        .code-block .comment { color: #5c6370; font-style: italic; }
+
+        /* 通用标题 */
+        h2 {
+            font-size: 20px;
+            font-weight: normal;
+            color: var(--accent);
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* 技能/状态网格 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--text-muted);
+            background-color: #151515;
+            transform: translateY(-2px);
+        }
+
+        .card h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+
+        .card p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .status-tag {
+            display: inline-block;
+            border: 1px solid var(--text-muted);
+            padding: 2px 8px;
+            font-size: 12px;
+            border-radius: 2px;
+            margin-right: 5px;
+            margin-top: 5px;
+            color: var(--text-muted);
+        }
+
+        /* 作品展示区（基于你手绘的Logo） */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .logo-placeholder {
+            aspect-ratio: 1/1;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 10px;
+            transition: all 0.3s ease;
+            cursor: crosshair;
+        }
+
+        .logo-placeholder:hover {
+            background-color: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        /* 底部 */
+        footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+
+        .blinking-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background-color: var(--accent);
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="terminal-line">Initializing system...</div>
+        <div class="terminal-line">Loading user profile...</div>
+        <h1>第一未知量 <span>[ ThinkHuman ]</span></h1>
+        <div class="terminal-line" style="margin-top: 10px;">Status: 调试中 <span class="blinking-cursor"></span></div>
+    </header>
+
+    <section>
+        <h2>关于我</h2>
+        <div class="code-block">
+            <span class="comment">// 变量定义</span><br>
+            <span class="keyword">while</span> (World_Is_Noisy) {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> (Human_Interaction) {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="func">Trigger_Panic</span>();<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;} <span class="keyword">else</span> {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="func">Write_Code</span>();&nbsp;<span class="func">Learn_Math</span>();&nbsp;<span class="func">Talk_to_AI</span>();<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+            }<br>
+            <span class="comment">// 对人类的信任度为10，对机器的信任度为100</span>
+        </div>
+    </section>
+
+    <section>
+        <h2>Legendary machine life</h2>
+        <div class="grid-container">
+            <div class="card">
+                <h3>计算机/编程</h3>
+                <p>能写简单的条件与循环，会给计算机装双系统。</p>
+                <span class="status-tag">程序设计</span>
+                <span class="status-tag">Linux</span>
+                <span class="status-tag">AI探索者</span>
+            </div>
+            <div class="card">
+                <h3>数学/逻辑</h3>
+                <p>学数学的。能做一部分高代和数分题，或许擅长纯粹的逻辑推导。</p>
+                <span class="status-tag">高等代数</span>
+                <span class="status-tag">数学分析</span>
+            </div>
+            <div class="card">
+                <h3>硬件/嵌入式</h3>
+                <p>单片机究极初学者（？），目前的巅峰成就是能让LED一亮一灭。</p>
+                <span class="status-tag">单片机</span>
+                <span class="status-tag">LED</span>
+            </div>
+            <div class="card">
+                <h3>独特技能</h3>
+                <p>思路跳跃、冷幽默、解离观察者。能给小猫起100个不重样的名字，以及设计Logo。</p>
+                <span class="status-tag">冷幽默</span>
+                <span class="status-tag">科学幻想</span>
+            </div>
+        </div>
+    </section>
+
+
+    <footer>
+        <p>访问被拒绝？那只是系统的建议。</p>
+        <p>不转人工，概率在线。</p>
+        <p style="margin-top: 10px;">&copy; 2026 第一未知量. ThinkHuman.</p>
+    </footer>
+
+</body>
+</html>
